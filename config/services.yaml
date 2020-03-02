@@ -1,0 +1,101 @@
+services:
+  router.factory:
+    class: App\Component\Routing\RouterFactory
+    arguments:
+      - "@request_storage"
+      - "%kernel.config_dir%"
+
+  router:
+    class: Symfony\Component\Routing\Router
+    factory: ["@router.factory", create]
+
+  request_storage:
+    class: App\Component\Kernel\RequestStorage
+
+  http_kernel:
+    class: App\Component\Kernel\HttpKernel
+    calls:
+      - [setContainer, ["@service_container"]]
+
+  controller_resolver:
+    class: App\Component\Controller\ControllerResolver
+    calls:
+      - [setContainer, ["@service_container"]]
+
+  serializer.factory:
+    public: false
+    class: App\Component\Serializer\SerializerFactory
+
+  serializer:
+    class: JMS\Serializer\Serializer
+    factory: ["@serializer.factory", create]
+
+  entity_manager.factory:
+    public: false
+    class: App\Component\Doctrine\EntityManagerFactory
+    arguments:
+      - "%kernel.config_dir%/doctrine.yaml"
+    calls:
+      - [setContainer, ["@service_container"]]
+
+  entity_manager:
+    class: Doctrine\ORM\EntityManager
+    factory: ["@entity_manager.factory", create]
+
+  cache:
+    class: Doctrine\Common\Cache\ArrayCache
+
+  factory.order_product:
+    class: App\Factory\OrderProductFactory
+    arguments:
+      - "@entity_manager"
+
+  factory.order:
+    class: App\Factory\OrderFactory
+    arguments:
+      - "@entity_manager"
+      - "@factory.order_product"
+
+  http_client:
+    class: GuzzleHttp\Client
+
+  handler.payment:
+    class: App\Payment\PaymentHandler
+    calls:
+      - [addHandler, ["@handler.payment.validate"]]
+      - [addHandler, ["@handler.payment.http_call"]]
+      - [addHandler, ["@handler.payment.order_change"]]
+
+  handler.payment.validate:
+    public: false
+    class: App\Payment\ValidatePaymentHandler
+
+  handler.payment.http_call:
+    public: false
+    class: App\Payment\HttpCallPaymentHandler
+    arguments:
+      - "@http_client"
+      - "%payment.url%"
+
+  handler.payment.order_change:
+    public: false
+    class: App\Payment\OrderChangePaymentHandler
+    arguments:
+      - "@entity_manager"
+
+  logger.null:
+    public: false
+    class: Psr\Log\NullLogger
+
+  logger.file:
+    public: false
+    class: App\Component\Logger\FileLogger
+    arguments:
+      - "%kernel.logs_dir%"
+
+  logger:
+    class: App\Component\Logger\Logger
+    arguments:
+      - "%debug%"
+      - "@logger.file"
+      - "@logger.null"

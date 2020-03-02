@@ -1,0 +1,12 @@
+parameters:
+    database_driver:    pdo_pgsql
+    database_host:      localehost
+    database_port:      5432
+    database_schema:    db
+    database_dbname:    db
+    database_user:      db
+    database_password:  db
+
+    payment.url: "http://ya.ru/"
+
+    debug: true

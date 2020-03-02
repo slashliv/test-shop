@@ -1,0 +1,16 @@
+#!/usr/bin/env php
+
+<?php
+
+use App\Application;
+use App\Kernel;
+use Symfony\Component\Console\Input\ArgvInput;
+
+require_once "bootstrap.php";
+
+$kernel = new Kernel();
+$application = new Application($kernel);
+$application->add(new \App\Command\LoadInitialFixturesCommand());
+
+$input = new ArgvInput();
+$application->run($input);

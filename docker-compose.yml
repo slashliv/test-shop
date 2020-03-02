@@ -1,0 +1,41 @@
+version: '3'
+
+services:
+    php:
+        build:
+            context: ./docker/php
+        volumes:
+            - .:/var/www/project
+        depends_on:
+            - db
+            - redis
+        environment:
+            XDEBUG_CONFIG: remote_host=172.17.0.1
+            PHP_IDE_CONFIG: serverName=Docker
+    nginx:
+        build:
+            context: ./docker/nginx
+        volumes:
+            - ./var/logs/nginx:/var/log/nginx
+        depends_on:
+            - php
+        ports:
+            - "80:80"
+    db:
+        image: postgres:9.6
+        volumes:
+            - db:/var/lib/postgresql/data
+        ports:
+            - "5432:5432"
+        environment:
+            POSTGRES_USER: db
+            POSTGRES_PASSWORD: db
+            POSTGRES_DB: db
+    redis:
+        image: redis:3.2
+        volumes:
+            - redis:/data
+
+volumes:
+    db:
+    redis:

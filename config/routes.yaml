@@ -1,0 +1,9 @@
+app_order_create:
+  path: /order/create
+  methods: POST
+  controller: App\Controller\OrderController:createAction
+
+app_order_pay:
+  path: /order/{id}/pay
+  methods: POST
+  controller: App\Controller\OrderController:payAction
